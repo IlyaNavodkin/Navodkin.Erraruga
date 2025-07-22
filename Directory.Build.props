@@ -1,0 +1,29 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
+    <!--<WarningsAsErrors />-->
+    <Nullable>enable</Nullable>
+    
+    <PackageId>Navodkin.Erraruga.Core</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>IlyaNavodkin</Authors>
+    <Company>IlyaNavodkin</Company>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <Description>Library for implementing client-server architecture for inter-process communication based on BIDTP protocol for dotnet.</Description>
+    <ProjectUrl>https://github.com/IlyaNavodkin/Navodkin.Erraruga</ProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/IlyaNavodkin/Navodkin.Erraruga</RepositoryUrl>
+    <Copyright>Copyright (c) 2025 Khudoshin Ilya (or Ilia) Igorevich</Copyright>
+    <Tags>bidtp;interprocess;communication;client-server;pipe;protocol</Tags>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <IncludeSymbols>true</IncludeSymbols>
+    <DebugSymbols>true</DebugSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+  </PropertyGroup>
+</Project> 
