@@ -1,0 +1,67 @@
+name: CI & Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  
+
+      - name: 'Get Previous tag'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: v1.0.0 
+
+      - name: 'Get Version'
+        id: version
+        run: |
+          echo "LIB_VERSION=${{ steps.previoustag.outputs.tag }}" >> $GITHUB_ENV
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install NUKE
+        run: dotnet tool install --global Nuke.GlobalTool
+
+      - name: Run NUKE
+        id: nuke_build
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          LIB_VERSION:  ${{ steps.previoustag.outputs.tag }} 
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          nuke ReleaseBaby
+
+      - name: Upload NuGet packages as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+
+      - name: Display Release Content
+        run: |
+          echo "Release content: ${{ steps.nuke_build.outputs.RELEASE_CONTENT }}"
+
+      - name: Create Release and Upload Assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+            files: artifacts/*.nupkg 
+            tag_name: ${{ github.ref_name }}
+            name: Release ${{ github.ref_name }}
+            body: ${{ steps.nuke_build.outputs.RELEASE_CONTENT }}
+            draft: false
+            prerelease: false
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

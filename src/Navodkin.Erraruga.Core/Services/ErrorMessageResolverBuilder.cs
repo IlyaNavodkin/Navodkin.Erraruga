@@ -8,6 +8,11 @@ public class ErrorMessageResolverBuilder
 {
     public IErrorMessageResolver Instance { get; private set; }
 
+    public ErrorMessageResolverBuilder()
+    {
+        Instance = new ErrorMessageResolver();
+    }
+
     public ErrorMessageResolverBuilder WithDefaultRule(
         ErrorRule errorRule
     )

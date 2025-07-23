@@ -1,0 +1,158 @@
+﻿<Window x:Class="Example.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Example.WPF"
+        xmlns:viewmodels="clr-namespace:Example.WPF.ViewModels"
+        mc:Ignorable="d"
+        Title="Navodkin.Erraruga Demo" Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen">
+    
+    <Window.DataContext>
+        <viewmodels:MainViewModel/>
+    </Window.DataContext>
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="Navodkin.Erraruga Library Demo" 
+                   FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+        
+        <!-- Main content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left panel - testing buttons -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,10,0">
+                <StackPanel>
+                    <GroupBox Header="Error Testing" Margin="0,0,0,10">
+                        <StackPanel Margin="10">
+                            <Button Content="Validation Error" 
+                                    Command="{Binding TestValidationErrorCommand}"
+                                    Background="Orange" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="Resource Not Found" 
+                                    Command="{Binding TestNotFoundErrorCommand}"
+                                    Background="Red" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="Permission Denied" 
+                                    Command="{Binding TestPermissionErrorCommand}"
+                                    Background="Gray" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="Network Error" 
+                                    Command="{Binding TestNetworkErrorCommand}"
+                                    Background="Purple" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="Database Error" 
+                                    Command="{Binding TestDatabaseErrorCommand}"
+                                    Background="DarkRed" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="Configuration Error" 
+                                    Command="{Binding TestConfigurationErrorCommand}"
+                                    Background="DarkOrange" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="User Custom Error" 
+                                    Command="{Binding TestCustomUserErrorCommand}"
+                                    Background="Blue" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="System Custom Error" 
+                                    Command="{Binding TestCustomSystemErrorCommand}"
+                                    Background="DarkBlue" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="Unknown Error" 
+                                    Command="{Binding TestUnknownErrorCommand}"
+                                    Background="Black" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="Exception Error" 
+                                    Command="{Binding TestExceptionErrorCommand}"
+                                    Background="DarkGreen" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                            
+                            <Button Content="Runtime Context Demo" 
+                                    Command="{Binding TestRuntimeContextCommand}"
+                                    Background="Teal" Foreground="White" 
+                                    Margin="0,5" Padding="10,5"/>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </ScrollViewer>
+            
+            <!-- Middle panel - processed result -->
+            <GroupBox Grid.Column="1" Header="Processed Error Result" Margin="5,0">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                        <TextBlock Text="{Binding CurrentError}" 
+                                   TextWrapping="Wrap" 
+                                   FontFamily="Consolas" 
+                                   Background="LightGray" 
+                                   Padding="10"
+                                   MinHeight="200"/>
+                    </ScrollViewer>
+                    
+                    <Button Grid.Row="1" Content="Clear Error" 
+                            Command="{Binding ClearErrorCommand}"
+                            Background="LightCoral" 
+                            Margin="0,10,0,0" 
+                            Padding="10,5"/>
+                </Grid>
+            </GroupBox>
+            
+            <!-- Right panel - JSON representation -->
+            <GroupBox Grid.Column="2" Header="Error JSON Structure" Margin="10,0,0,0">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                        <TextBlock Text="{Binding CurrentErrorJson}" 
+                                   TextWrapping="Wrap" 
+                                   FontFamily="Consolas" 
+                                   FontSize="11"
+                                   Background="LightYellow" 
+                                   Padding="10"
+                                   MinHeight="200"/>
+                    </ScrollViewer>
+                    
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                        <TextBlock Text="AppError object structure with metadata" 
+                                   FontStyle="Italic" 
+                                   Foreground="Gray" 
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+        </Grid>
+        
+        <!-- Bottom panel -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+            <TextBlock Text="Navodkin.Erraruga - Error handling library" 
+                       FontStyle="Italic" Foreground="Gray"/>
+        </StackPanel>
+    </Grid>
+</Window>
