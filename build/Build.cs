@@ -56,29 +56,14 @@ class Build : NukeBuild
             return version;
         }
 
-        // Для серверной сборки используем версию из переменной окружения, если она передана
-        if (!string.IsNullOrEmpty(Version))
-        {
-            // Удаляем префикс "v" если он есть
-            var cleanVersion = Version.TrimStart('v');
-            Log.Information("Using version from environment: {OriginalVersion} -> {CleanVersion}", Version, cleanVersion);
-            return cleanVersion;
-        }
+        if (string.IsNullOrEmpty(Version))
+            throw new Exception("VERSION parameter is required for server builds");
 
-        // Если переменная VERSION не передана, используем версию из common.props
-        var propsFile = Root / "common.props";
-        var doc = XDocument.Load(propsFile);
-        var defaultVersion = doc
-            .Descendants("Version")
-            .FirstOrDefault()
-            ?.Value
-            ?.Trim();
-
-        if (string.IsNullOrEmpty(defaultVersion))
-            throw new Exception("Version not found in common.props");
-
-        Log.Information("Using version from common.props: {Version}", defaultVersion);
-        return defaultVersion;
+        // Удаляем префикс "v" если он есть
+        var cleanVersion = Version.TrimStart('v');
+        Log.Information("Original version: {OriginalVersion}, Clean version: {CleanVersion}", Version, cleanVersion);
+        
+        return cleanVersion;
     }
 
     Target Clean => _ => _

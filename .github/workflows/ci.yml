@@ -21,6 +21,11 @@ jobs:
         with:
           fallback: v1.0.0 # Optional fallback tag to use when no tag can be found
 
+      - name: 'Get Version'
+        id: version
+        run: |
+          echo "VERSION=${{ steps.previoustag.outputs.tag }}" >> $GITHUB_ENV
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
