@@ -13,16 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  
+          fetch-depth: 0
+          fetch-tags: true  
 
       - name: Get latest tag
         id: get_tag
         run: |
-          # Получаем последний тег по дате создания
-          LATEST_TAG=$(git describe --tags --abbrev=0)
+          # РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕР±РЅРѕРІР»СЏРµРј С‚РµРіРё
+          git fetch --tags --force
+          # РџРѕР»СѓС‡Р°РµРј РїРѕСЃР»РµРґРЅРёР№ С‚РµРі РїРѕ РІРµСЂСЃРёРё
+          LATEST_TAG=$(git tag --sort=-version:refname | head -n1)
           echo "Latest tag: $LATEST_TAG"
           echo "VERSION=$LATEST_TAG" >> $GITHUB_ENV
-          echo "::set-output name=version::$LATEST_TAG"
+          echo "version=$LATEST_TAG" >> $GITHUB_OUTPUT
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -35,7 +38,7 @@ jobs:
       - name: Run NUKE
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-          VERSION: ${{ env.VERSION }}  # Используем переменную окружения
+          VERSION: ${{ env.VERSION }}
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
           nuke PublishNuget
