@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Получаем всю историю коммитов, включая теги
+          fetch-depth: 0  
 
       - name: Get latest tag
         id: get_tag
