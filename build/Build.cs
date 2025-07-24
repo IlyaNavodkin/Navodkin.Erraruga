@@ -23,6 +23,7 @@ class Build : NukeBuild
     public static int Main() => Execute<Build>(x => x.CreateNuget);
 
     [Parameter(Name = "NUGET_API_KEY")] readonly string NuGetApiKey;
+    [Parameter(Name = "VERSION")] readonly string Version;
     [GitRepository] readonly GitRepository GitRepository;
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
@@ -31,25 +32,34 @@ class Build : NukeBuild
     // ───── Путь до проекта и папок ─────────────────────
     AbsolutePath Root => RootDirectory;
     AbsolutePath OutputDirectory => Root / "artifacts";
-    AbsolutePath PropsFile => Root / "common.props";
     AbsolutePath LibCoreFile => Root / "src" / "Navodkin.Erraruga.Core" / "Navodkin.Erraruga.Core.csproj";
     AbsolutePath TestProject => Root / "tests" / "Navodkin.Erraruga.Core.Tests" / "Navodkin.Erraruga.Core.Tests.csproj";
 
     // ───── Шаги сборки ─────────────────────────────────
 
-    string GetVersionFromProps()
+    string GetVersion()
     {
-        var doc = XDocument.Load(PropsFile);
-        var version = doc
-            .Descendants("Version")
-            .FirstOrDefault()
-            ?.Value
-            ?.Trim();
+        if (IsLocalBuild)
+        {
+            // Для локальной сборки используем версию из common.props
+            var propsFile = Root / "common.props";
+            var doc = XDocument.Load(propsFile);
+            var version = doc
+                .Descendants("Version")
+                .FirstOrDefault()
+                ?.Value
+                ?.Trim();
 
-        if (string.IsNullOrEmpty(version))
-            throw new Exception("Version not found in common.props");
+            if (string.IsNullOrEmpty(version))
+                throw new Exception("Version not found in common.props");
 
-        return version;
+            return version;
+        }
+
+        if (string.IsNullOrEmpty(Version))
+            throw new Exception("VERSION parameter is required for server builds");
+
+        return Version;
     }
 
     Target Clean => _ => _
@@ -88,9 +98,9 @@ class Build : NukeBuild
         .DependsOn(RunTests)
         .Executes(() =>
         {
-            var version = GetVersionFromProps();
+            var version = GetVersion();
 
-            Log.Information("Using version from common.props: {Version}", version);
+            Log.Information("Using version: {Version}", version);
 
             DotNetPack(s => s
                 .SetProject(LibCoreFile)
@@ -100,22 +110,8 @@ class Build : NukeBuild
                 .SetVersion(version));
         });
 
-    Target GitTag => _ => _
-        .DependsOn(CreateNuget)
-        .OnlyWhenDynamic(() => IsServerBuild)
-        .Executes(() =>
-        {
-            var version = GetVersionFromProps();
-            var tag = $"v{version}";
-
-            Log.Information("Creating git tag: {Tag}", tag);
-
-            ProcessTasks.StartProcess("git", $"tag {tag}").AssertZeroExitCode();
-            ProcessTasks.StartProcess("git", $"push origin {tag}").AssertZeroExitCode();
-        });
-
     Target PublishNuget => _ => _
-        .DependsOn(GitTag)
+        .DependsOn(CreateNuget)
         .Requires(() => NuGetApiKey)
         .Executes(() =>
         {
