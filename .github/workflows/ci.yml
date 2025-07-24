@@ -2,8 +2,8 @@ name: CI & Publish
 
 on:
   push:
-    branches:
-      - release
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -41,3 +41,21 @@ jobs:
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
           nuke PublishNuget
+
+      - name: Upload NuGet packages as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+
+      - name: Create Release and Upload Assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+            files: artifacts/*.nupkg  # Автоматически загрузит все .nupkg
+            tag_name: ${{ github.ref_name }}
+            name: Release ${{ github.ref_name }}
+            draft: false
+            prerelease: false
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
