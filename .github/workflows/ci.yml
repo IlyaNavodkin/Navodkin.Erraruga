@@ -21,13 +21,6 @@ jobs:
         with:
           fallback: v1.0.0 # Optional fallback tag to use when no tag can be found
 
-      - name: 'Get Current tag'
-        id: currenttag
-        run: |
-          CURRENT_TAG=$(git describe --tags --abbrev=0)
-          echo "CURRENT_TAG=$CURRENT_TAG" >> $GITHUB_ENV
-          echo "VERSION=$CURRENT_TAG" >> $GITHUB_ENV
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -39,7 +32,7 @@ jobs:
       - name: Run NUKE
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-          VERSION: ${{ env.VERSION }}
+          VERSION:  ${{ steps.previoustag.outputs.tag }} 
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
           nuke PublishNuget
