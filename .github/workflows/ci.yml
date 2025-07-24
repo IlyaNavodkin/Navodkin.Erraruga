@@ -24,7 +24,7 @@ jobs:
       - name: 'Get Version'
         id: version
         run: |
-          echo "VERSION=${{ steps.previoustag.outputs.tag }}" >> $GITHUB_ENV
+          echo "LIB_VERSION=${{ steps.previoustag.outputs.tag }}" >> $GITHUB_ENV
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -37,7 +37,7 @@ jobs:
       - name: Run NUKE
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-          VERSION:  ${{ steps.previoustag.outputs.tag }} 
+          LIB_VERSION:  ${{ steps.previoustag.outputs.tag }} 
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
           nuke PublishNuget

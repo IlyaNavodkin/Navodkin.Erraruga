@@ -23,7 +23,7 @@ class Build : NukeBuild
     public static int Main() => Execute<Build>(x => x.CreateNuget);
 
     [Parameter(Name = "NUGET_API_KEY")] readonly string NuGetApiKey;
-    [Parameter(Name = "VERSION")] readonly string Version;
+    [Parameter(Name = "LIB_VERSION")] readonly string Version;
     [GitRepository] readonly GitRepository GitRepository;
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
@@ -69,6 +69,7 @@ class Build : NukeBuild
     Target Clean => _ => _
         .Executes(() =>
         {
+            Log.Information("////////////////////////////////", OutputDirectory);
             EnsureCleanDirectory(OutputDirectory);
         });
 
