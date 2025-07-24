@@ -40,7 +40,7 @@ jobs:
           LIB_VERSION:  ${{ steps.previoustag.outputs.tag }} 
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
-          nuke PublishNuget
+          nuke CreateNuget
 
       - name: Upload NuGet packages as artifacts
         uses: actions/upload-artifact@v4
