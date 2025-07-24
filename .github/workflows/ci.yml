@@ -43,7 +43,7 @@ jobs:
           nuke PublishNuget
 
       - name: Upload NuGet packages as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
           path: artifacts/*.nupkg
@@ -52,7 +52,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-            files: artifacts/*.nupkg  # Автоматически загрузит все .nupkg
+            files: artifacts/*.nupkg 
             tag_name: ${{ github.ref_name }}
             name: Release ${{ github.ref_name }}
             draft: false
