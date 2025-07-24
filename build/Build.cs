@@ -59,7 +59,11 @@ class Build : NukeBuild
         if (string.IsNullOrEmpty(Version))
             throw new Exception("VERSION parameter is required for server builds");
 
-        return Version;
+        // Удаляем префикс "v" если он есть
+        var cleanVersion = Version.TrimStart('v');
+        Log.Information("Original version: {OriginalVersion}, Clean version: {CleanVersion}", Version, cleanVersion);
+        
+        return cleanVersion;
     }
 
     Target Clean => _ => _
