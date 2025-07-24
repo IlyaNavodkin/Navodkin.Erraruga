@@ -121,13 +121,17 @@ class Build : NukeBuild
         .Executes(() =>
         {
             var packages = Glob.Files(OutputDirectory, "*.nupkg");
+            Log.Information("Found packages: {Packages}", string.Join(", ", packages));
+            
             foreach (var package in packages)
             {
+                var fullPath = OutputDirectory / package;
+                Log.Information("Publishing package: {PackagePath}", fullPath);
+                
                 DotNetNuGetPush(s => s
-                    .SetTargetPath(package)
+                    .SetTargetPath(fullPath)
                     .SetSource("https://api.nuget.org/v3/index.json")
                     .SetApiKey(NuGetApiKey));
-
             }
         });
 }
