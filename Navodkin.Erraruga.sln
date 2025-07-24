@@ -10,8 +10,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{ADA4EF17-633C-48A4-A732-03F4AADBD08C}"
 	ProjectSection(SolutionItems) = preProject
 		CHANGELOG.md = CHANGELOG.md
-		LICENSE.md = LICENSE.md
 		common.props = common.props
+		LICENSE.md = LICENSE.md
 		README.MD = README.MD
 	EndProjectSection
 EndProject
@@ -22,6 +22,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navodkin.Erraruga.Core", "src\Navodkin.Erraruga.Core\Navodkin.Erraruga.Core.csproj", "{4C368127-F65F-40B2-84BE-7D118E0EF33F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.WPF", "example\Example.WPF\Example.WPF.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{830A13BB-834C-4513-9363-CF6E408FC14C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{8F0AB76A-B7E4-4A92-8378-41471822C7B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +45,10 @@ Global
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F0AB76A-B7E4-4A92-8378-41471822C7B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F0AB76A-B7E4-4A92-8378-41471822C7B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F0AB76A-B7E4-4A92-8378-41471822C7B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F0AB76A-B7E4-4A92-8378-41471822C7B9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +57,7 @@ Global
 		{11CA40C2-1BA7-45C8-989B-6174E229B58C} = {7CF280E7-14D2-4B51-940E-ED59A83A72E7}
 		{4C368127-F65F-40B2-84BE-7D118E0EF33F} = {900E518B-44FE-4895-801A-63D4AE4E80F7}
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890} = {1DB73BE6-A2B7-4CC1-9391-9790FCED5679}
+		{8F0AB76A-B7E4-4A92-8378-41471822C7B9} = {830A13BB-834C-4513-9363-CF6E408FC14C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7FC2A521-5DFD-4106-BFBB-61ECBCFD32DA}

@@ -1,0 +1,132 @@
+﻿using System;
+using System.Linq;
+using System.Xml.Linq;
+using Nuke.Common;
+using Nuke.Common.CI;
+using Nuke.Common.Execution;
+using Nuke.Common.IO;
+using Nuke.Common.ProjectModel;
+using Nuke.Common.Tooling;
+using Nuke.Common.Utilities.Collections;
+using static Nuke.Common.EnvironmentInfo;
+using static Nuke.Common.IO.FileSystemTasks;
+using static Nuke.Common.IO.PathConstruction;
+using Nuke.Common.Tools.DotNet;
+using static Nuke.Common.Tools.DotNet.DotNetTasks;
+using Nuke.Common.Git;
+using Nuke.Common.CI.GitHubActions;
+using Serilog;
+using GlobExpressions;
+
+class Build : NukeBuild
+{
+    public static int Main() => Execute<Build>(x => x.CreateNuget);
+
+    [Parameter(Name = "NUGET_API_KEY")] readonly string NuGetApiKey;
+    [GitRepository] readonly GitRepository GitRepository;
+
+    [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
+    readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+
+    // ───── Путь до проекта и папок ─────────────────────
+    AbsolutePath Root => RootDirectory;
+    AbsolutePath OutputDirectory => Root / "artifacts";
+    AbsolutePath PropsFile => Root / "common.props";
+    AbsolutePath LibCoreFile => Root / "src" / "Navodkin.Erraruga.Core" / "Navodkin.Erraruga.Core.csproj";
+    AbsolutePath TestProject => Root / "tests" / "Navodkin.Erraruga.Core.Tests" / "Navodkin.Erraruga.Core.Tests.csproj";
+
+    // ───── Шаги сборки ─────────────────────────────────
+
+    string GetVersionFromProps()
+    {
+        var doc = XDocument.Load(PropsFile);
+        var version = doc
+            .Descendants("Version")
+            .FirstOrDefault()
+            ?.Value
+            ?.Trim();
+
+        if (string.IsNullOrEmpty(version))
+            throw new Exception("Version not found in common.props");
+
+        return version;
+    }
+
+    Target Clean => _ => _
+        .Executes(() =>
+        {
+            EnsureCleanDirectory(OutputDirectory);
+        });
+
+    Target Restore => _ => _
+        .DependsOn(Clean)
+        .Executes(() =>
+        {
+            DotNetRestore(s => s.SetProjectFile(LibCoreFile));
+        });
+
+    Target Compile => _ => _
+        .DependsOn(Restore)
+        .Executes(() =>
+        {
+            DotNetBuild(s => s
+                .SetProjectFile(LibCoreFile)
+                .SetConfiguration(Configuration)
+                .EnableNoRestore());
+        });
+
+    Target RunTests => _ => _
+        .DependsOn(Compile)
+        .Executes(() =>
+        {
+            DotNetTest(s => s
+                .SetProjectFile(TestProject)
+                .SetConfiguration(Configuration));
+        });
+
+    Target CreateNuget => _ => _
+        .DependsOn(RunTests)
+        .Executes(() =>
+        {
+            var version = GetVersionFromProps();
+
+            Log.Information("Using version from common.props: {Version}", version);
+
+            DotNetPack(s => s
+                .SetProject(LibCoreFile)
+                .SetConfiguration(Configuration)
+                .SetOutputDirectory(OutputDirectory)
+                .EnableNoBuild()
+                .SetVersion(version));
+        });
+
+    Target GitTag => _ => _
+        .DependsOn(CreateNuget)
+        .OnlyWhenDynamic(() => IsServerBuild)
+        .Executes(() =>
+        {
+            var version = GetVersionFromProps();
+            var tag = $"v{version}";
+
+            Log.Information("Creating git tag: {Tag}", tag);
+
+            ProcessTasks.StartProcess("git", $"tag {tag}").AssertZeroExitCode();
+            ProcessTasks.StartProcess("git", $"push origin {tag}").AssertZeroExitCode();
+        });
+
+    Target PublishNuget => _ => _
+        .DependsOn(GitTag)
+        .Requires(() => NuGetApiKey)
+        .Executes(() =>
+        {
+            var packages = Glob.Files(OutputDirectory, "*.nupkg");
+            foreach (var package in packages)
+            {
+                DotNetNuGetPush(s => s
+                    .SetTargetPath(package)
+                    .SetSource("https://api.nuget.org/v3/index.json")
+                    .SetApiKey(NuGetApiKey));
+
+            }
+        });
+}
