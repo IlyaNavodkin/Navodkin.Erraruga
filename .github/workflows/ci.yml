@@ -41,14 +41,17 @@ jobs:
           LIB_VERSION:  ${{ steps.previoustag.outputs.tag }} 
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
-          nuke ReleaseBaby 
-          echo "Release content: ${{ steps.nuke_build.outputs.RELEASE_CONTENT }}"
+          nuke ReleaseBaby
 
       - name: Upload NuGet packages as artifacts
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
           path: artifacts/*.nupkg
+
+      - name: Display Release Content
+        run: |
+          echo "Release content: ${{ steps.nuke_build.outputs.RELEASE_CONTENT }}"
 
       - name: Create Release and Upload Assets
         if: startsWith(github.ref, 'refs/tags/')

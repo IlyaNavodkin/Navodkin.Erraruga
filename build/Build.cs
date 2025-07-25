@@ -129,7 +129,7 @@ class Build : NukeBuild
             var githubOutput = Environment.GetEnvironmentVariable("GITHUB_OUTPUT");
             if (!string.IsNullOrEmpty(githubOutput))
             {
-                File.AppendAllText(githubOutput, $"RELEASE_CONTENT={releaseContent}{Environment.NewLine}");
+                File.AppendAllText(githubOutput, $"RELEASE_CONTENT<<EOF{Environment.NewLine}{releaseContent}{Environment.NewLine}EOF{Environment.NewLine}");
             }
             else
             {
