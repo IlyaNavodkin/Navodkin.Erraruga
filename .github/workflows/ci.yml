@@ -35,25 +35,20 @@ jobs:
         run: dotnet tool install --global Nuke.GlobalTool
 
       - name: Run NUKE
+        id: nuke_build
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
           LIB_VERSION:  ${{ steps.previoustag.outputs.tag }} 
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
-          nuke CreateNuget
+          nuke ReleaseBaby 
+          echo "Release content: ${{ steps.nuke_build.outputs.RELEASE_CONTENT }}"
 
       - name: Upload NuGet packages as artifacts
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
           path: artifacts/*.nupkg
-
-      - name: Extract latest changelog section
-        id: parsedlog
-        run: |
-            changelog=$(awk "/^## \[${{ github.ref_name }}\]/ {flag=1; next} /^## \[/ {flag=0} flag" CHANGELOG.md)
-            changelog=$(echo "$changelog" | sed ':a;N;$!ba;s/\n/\\n/g')
-            echo "result=$changelog" >> $GITHUB_OUTPUT
 
       - name: Create Release and Upload Assets
         if: startsWith(github.ref, 'refs/tags/')
@@ -62,7 +57,7 @@ jobs:
             files: artifacts/*.nupkg 
             tag_name: ${{ github.ref_name }}
             name: Release ${{ github.ref_name }}
-            body:  ${{ steps.parsedlog.outputs.result }}
+            body: Release ${{ github.ref_name }}
             draft: false
             prerelease: false
         env:

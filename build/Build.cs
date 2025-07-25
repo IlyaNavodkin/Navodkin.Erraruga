@@ -17,6 +17,7 @@ using Nuke.Common.Git;
 using Nuke.Common.CI.GitHubActions;
 using Serilog;
 using GlobExpressions;
+using System.IO;
 
 class Build : NukeBuild
 {
@@ -113,6 +114,34 @@ class Build : NukeBuild
                 .SetOutputDirectory(OutputDirectory)
                 .EnableNoBuild()
                 .SetVersion(version));
+        });
+
+    Target GetReleaseContent => _ => _
+        .DependsOn(CreateNuget)
+        .Executes(() =>
+        {
+            var version = GetVersion();
+
+            Log.Information("Using version: {Version}", version);
+
+            string releaseContent = "Some important release notes";
+
+            var githubOutput = Environment.GetEnvironmentVariable("GITHUB_OUTPUT");
+            if (!string.IsNullOrEmpty(githubOutput))
+            {
+                File.AppendAllText(githubOutput, $"RELEASE_CONTENT={releaseContent}{Environment.NewLine}");
+            }
+            else
+            {
+                throw new Exception("Cant find content");
+            }
+        });
+
+    Target ReleaseBaby => _ => _
+        .DependsOn(GetReleaseContent)
+        .Executes(() =>
+        {
+            Log.Information("Okay :D run this shit!");
         });
 
     //Target PublishNuget => _ => _
