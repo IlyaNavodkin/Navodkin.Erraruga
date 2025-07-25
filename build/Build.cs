@@ -18,6 +18,7 @@ using Nuke.Common.CI.GitHubActions;
 using Serilog;
 using GlobExpressions;
 using System.IO;
+using System.Text;
 
 class Build : NukeBuild
 {
@@ -116,6 +117,8 @@ class Build : NukeBuild
                 .SetVersion(version));
         });
 
+
+
     Target GetReleaseContent => _ => _
         .DependsOn(CreateNuget)
         .Executes(() =>
@@ -135,6 +138,18 @@ class Build : NukeBuild
             {
                 throw new Exception("Cant find content");
             }
+        });
+
+    Target TestParse => _ => _
+        .Executes(() =>
+        {
+            var changelogFile = Root / "CHANGELOG.md";
+
+            var changelogContent = File.ReadAllText(changelogFile, Encoding.UTF8);
+
+            var entry = ChangelogParser.ParseVersion(changelogContent, "5.0.0");
+
+           
         });
 
     Target ReleaseBaby => _ => _
