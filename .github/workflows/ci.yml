@@ -48,6 +48,13 @@ jobs:
           name: nuget-packages
           path: artifacts/*.nupkg
 
+      - name: Extract latest changelog section
+        id: parsedlog
+        run: |
+            content=$(awk '/^## \[${{ github.ref_name }}\]/ {flag=1; next} /^## \[/ {flag=0} flag' CHANGELOG.md)
+            content=$(echo "$content" | sed ':a;N;$!ba;s/\n/\\n/g')
+            echo "result=$content" >> $GITHUB_OUTPUT
+
       - name: Create Release and Upload Assets
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
@@ -55,6 +62,7 @@ jobs:
             files: artifacts/*.nupkg 
             tag_name: ${{ github.ref_name }}
             name: Release ${{ github.ref_name }}
+            body: Release ${{ content }}
             draft: false
             prerelease: false
         env:
