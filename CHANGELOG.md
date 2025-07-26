@@ -1,3 +1,10 @@
+## [v1.0.2] - 2025-07-26
+
+### Changed
+- Change Readme fullname
+
+---
+
 ## [v1.0.1] - 2025-07-26
 
 ### Added
