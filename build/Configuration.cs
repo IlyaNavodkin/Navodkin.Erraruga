@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Nuke.Common.Tooling;
 
@@ -24,6 +25,42 @@ public class ChangelogEntry
     public List<string> Added { get; set; } = new List<string>();
     public List<string> Changed { get; set; } = new List<string>();
     public List<string> Fixed { get; set; } = new List<string>();
+
+    public override string ToString()
+    {
+        var stringBuilder = new StringBuilder();
+
+        stringBuilder.AppendLine($"## Version: {Version} - Date: {Date}\n");
+
+        if (Added.Any())
+        {
+            stringBuilder.AppendLine($"### Added:\n");
+            foreach (var item in Added)
+            {
+                stringBuilder.AppendLine($"- {item}\n");
+            }
+        }
+
+        if (Changed.Any())
+        {
+            stringBuilder.AppendLine($"### Changed:\n");
+            foreach (var item in Changed)
+            {
+                stringBuilder.AppendLine($"- {item}\n");
+            }
+        }
+
+        if (Fixed.Any())
+        {
+            stringBuilder.AppendLine($"### Fixed:\n");
+            foreach (var item in Fixed)
+            {
+                stringBuilder.AppendLine($"- {item}\n");
+            }
+        }
+
+        return stringBuilder.ToString();
+    }
 }
 
 
@@ -33,12 +70,10 @@ public static class ChangelogParser
     {
         var entry = new ChangelogEntry { Version = version };
 
-        // Нормализуем переносы строк
         changelogContent = changelogContent.Replace("\r\n", "\n");
         Console.WriteLine($"Changelog content:\n[{changelogContent}]");
 
-        // Паттерн для поиска заголовка версии
-        string versionPattern = $@"## \[v{Regex.Escape(version)}\] - (\d{{4}}-\d{{2}}-\d{{2}})";
+        var versionPattern = $@"## \[v{Regex.Escape(version)}\] - (\d{{4}}-\d{{2}}-\d{{2}})";
         Console.WriteLine($"Version pattern: {versionPattern}");
 
         var versionMatch = Regex.Match(changelogContent, versionPattern);
@@ -52,11 +87,10 @@ public static class ChangelogParser
         entry.Date = DateTime.Parse(versionMatch.Groups[1].Value);
         Console.WriteLine($"Found version: {version}, Date: {entry.Date}");
 
-        // Паттерн для секции от заголовка до ---
         string sectionPattern = $@"## \[v{Regex.Escape(version)}\] - \d{{4}}-\d{{2}}-\d{{2}}\n(.*?)\n---";
         var sectionMatch = Regex.Match(changelogContent, sectionPattern, RegexOptions.Singleline);
 
-        if (!sectionMatch.Success)
+       if (!sectionMatch.Success)
         {
             Console.WriteLine($"Section for version {version} not found. Pattern: {sectionPattern}");
             return entry;
@@ -101,3 +135,4 @@ public static class ChangelogParser
         }
     }
 }
+

@@ -1,3 +1,18 @@
+## [v6.0.0] - 2025-07-26
+### Added
+- Add normal CI
+
+### Changed
+- Change versioning
+- Change versioning
+- Change versioning
+- Change versioning
+
+### Fixed
+- Исправлен баг с генерацией пустых токенов при регистрации.
+
+---
+
 ## [v5.0.0] - 2025-07-25
 ### Added
 - Добавлена поддержка новой команды `do-something`.

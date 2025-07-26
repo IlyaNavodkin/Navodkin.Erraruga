@@ -123,16 +123,24 @@ class Build : NukeBuild
         .DependsOn(CreateNuget)
         .Executes(() =>
         {
-            var version = GetVersion();
+            Log.Information("Using version: {Version}", Version);
 
-            Log.Information("Using version: {Version}", version);
+            var changelogFile = Root / "CHANGELOG.md";
 
-            string releaseContent = "Some important release notes";
+            var changelogContent = File.ReadAllText(changelogFile, Encoding.UTF8);
+
+            var entry = ChangelogParser.ParseVersion(changelogContent, Version);
+
+            if (entry == null)
+            {
+                throw new Exception($"Version {Version} not found in changelog.");
+            }
 
             var githubOutput = Environment.GetEnvironmentVariable("GITHUB_OUTPUT");
+
             if (!string.IsNullOrEmpty(githubOutput))
             {
-                File.AppendAllText(githubOutput, $"RELEASE_CONTENT<<EOF{Environment.NewLine}{releaseContent}{Environment.NewLine}EOF{Environment.NewLine}");
+                File.AppendAllText(githubOutput, $"RELEASE_CONTENT<<EOF{Environment.NewLine}{entry.ToString()}{Environment.NewLine}EOF{Environment.NewLine}");
             }
             else
             {
