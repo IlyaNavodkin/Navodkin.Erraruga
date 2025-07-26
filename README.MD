@@ -13,7 +13,7 @@
 ## Overview
 
 Navodkin.Erraruga is a simple and extensible error handling library for .NET, designed to simplify error management, provide rich error context, and improve debugging and user experience in your applications.
-
+https://www.nuget.org/packages/Navodkin.Erraruga.Core
 ---
 
 ## Features
