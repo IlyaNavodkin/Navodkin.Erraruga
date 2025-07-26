@@ -71,25 +71,40 @@ The `ErrorMessageResolverBuilder` provides a fluent API for configuring error me
 var resolver = new ErrorMessageResolverBuilder()
     .WithDefaultRule(new ErrorRule("E001", e => "Default error message"))
     .WithDefaultRule(new ErrorRule("VAL001", e => "Validation error"))
+    .WithRule(new ErrorRule("VAL001", e => "Specific validation error"))
     .Build();
 ```
 
 ### Builder Methods
 
 - `WithDefaultRule(ErrorRule rule)` - Adds a default rule that will be used when no custom rule matches
+- `WithRule(ErrorRule rule)` - Adds a specific rule that takes precedence over default rules
 - `Build()` - Creates and returns the configured `IErrorMessageResolver`
 
 ---
 
-## Default Rules and Configuration
+## Rules and Context System
 
-### Creating Default Rules
+### Understanding WithDefaultRule vs WithRule
+
+The library provides two types of rules with different priorities:
+
+- **WithDefaultRule**: Creates fallback rules that are used when no specific rule matches
+- **WithRule**: Creates specific rules that take precedence over default rules
+
+### Rule Priority and Context Matching
+
+Rules are matched based on error code and context:
+1. **Specific Rule** (WithRule): Matches by code + context
+2. **Default Rule** (WithDefaultRule): Matches by code only (fallback)
+
+### Creating Rules
 
 ```csharp
 // Simple default rule
 var defaultRule = new ErrorRule("E001", error => "An unexpected error occurred.");
 
-// Rule with context
+// Rule with context (for specific scenarios)
 var contextRule = new ErrorRule("DB001", error => "Database error occurred.", "Connection");
 
 // Rule with dynamic message based on error properties
@@ -100,20 +115,25 @@ var dynamicRule = new ErrorRule("VAL001", error =>
 });
 ```
 
-### Configuring Resolver with Default Rules
+### Configuring Resolver with Both Rule Types
 
 ```csharp
 var resolver = new ErrorMessageResolverBuilder()
     .WithDefaultRule(new ErrorRule("E001", e => "An unexpected error occurred."))
     .WithDefaultRule(new ErrorRule("DB001", e => "Database connection failed."))
     .WithDefaultRule(new ErrorRule("VAL001", e => "Validation error occurred."))
+    .WithRule(new ErrorRule("DB001", e => "Connection timeout in user login", "UserLogin"))
+    .WithRule(new ErrorRule("VAL001", e => "Email validation failed", "Registration"))
     .Build();
 
-// Usage
-var error = new AppError("E001", "System error");
-string result = resolver.Resolve(error);
-Console.WriteLine(result);
-// Output: An unexpected error occurred.
+// Usage examples
+var generalError = new AppError("E001", "System error");
+var dbError = new AppError("DB001", "Connection failed", "UserLogin");
+var valError = new AppError("VAL001", "Validation failed", "Registration");
+
+Console.WriteLine(resolver.Resolve(generalError)); // Uses default rule
+Console.WriteLine(resolver.Resolve(dbError));      // Uses specific rule with context
+Console.WriteLine(resolver.Resolve(valError));     // Uses specific rule with context
 ```
 
 ---
@@ -132,7 +152,7 @@ databaseError.AppendMetadata("ConnectionString", "Server=localhost;Database=MyAp
 databaseError.AppendMetadata("Timeout", 30);
 databaseError.AppendMetadata("RetryCount", 3);
 
-// Error with context
+// Error with context (enables specific rule matching)
 var contextError = new AppError("E001", "An error occurred", "UserLogin");
 ```
 
@@ -202,7 +222,7 @@ Console.WriteLine(result);
 // Output: Validation error in field 'Email' with value 'test@'. Please check your input.
 ```
 
-### Advanced Rule Examples
+### Advanced Rule Examples with Context
 
 ```csharp
 // Database error rule with retry logic
@@ -218,6 +238,15 @@ var databaseRule = new ErrorRule("DB001", error =>
     return "Database connection failed. Please check your network connection.";
 });
 
+// Specific database rule for user login context
+var loginDbRule = new ErrorRule("DB001", error =>
+{
+    var retryCount = error.Metadata.GetValueOrDefault("RetryCount", 0);
+    return retryCount > 0 
+        ? $"Login failed after {retryCount} attempts. Please check your credentials and try again."
+        : "Unable to verify login credentials. Please try again.";
+}, "UserLogin");
+
 // Localized error rule
 var localizedMessages = new Dictionary<string, string>
 {
@@ -231,18 +260,26 @@ var localizedRule = new ErrorRule("E001", error =>
     return localizedMessages.GetValueOrDefault(error.Code, "Unknown error");
 });
 
-// Usage example
+// Usage example with both rule types
 var resolver = new ErrorMessageResolverBuilder()
     .WithDefaultRule(databaseRule)
+    .WithRule(loginDbRule)
     .WithDefaultRule(localizedRule)
     .Build();
 
-var dbError = new AppError("DB001", "Connection timeout");
-dbError.AppendMetadata("RetryCount", 3);
+// Test different scenarios
+var generalDbError = new AppError("DB001", "Connection timeout");
+generalDbError.AppendMetadata("RetryCount", 3);
 
-string result = resolver.Resolve(dbError);
-Console.WriteLine(result);
-// Output: Database operation failed after 3 retries. Please try again later.
+var loginDbError = new AppError("DB001", "Connection timeout", "UserLogin");
+loginDbError.AppendMetadata("RetryCount", 2);
+
+Console.WriteLine(resolver.Resolve(generalDbError)); // Uses default rule
+Console.WriteLine(resolver.Resolve(loginDbError));   // Uses specific rule with context
+
+// Output:
+// Database operation failed after 3 retries. Please try again later.
+// Login failed after 2 attempts. Please check your credentials and try again.
 ```
 
 ---
@@ -285,6 +322,32 @@ public interface IErrorMessageResolver
 }
 ```
 
+### Context System Explanation
+
+The context system allows you to create different error messages for the same error code based on where the error occurs:
+
+- **Without Context**: Rules match only by error code
+- **With Context**: Rules match by both error code and context string
+
+**Example Context Usage:**
+```csharp
+// Same error code, different contexts
+var resolver = new ErrorMessageResolverBuilder()
+    .WithDefaultRule(new ErrorRule("DB001", e => "General database error"))
+    .WithRule(new ErrorRule("DB001", e => "Login database error", "UserLogin"))
+    .WithRule(new ErrorRule("DB001", e => "Payment database error", "Payment"))
+    .Build();
+
+// Different results based on context
+var generalError = new AppError("DB001", "Connection failed");
+var loginError = new AppError("DB001", "Connection failed", "UserLogin");
+var paymentError = new AppError("DB001", "Connection failed", "Payment");
+
+Console.WriteLine(resolver.Resolve(generalError)); // "General database error"
+Console.WriteLine(resolver.Resolve(loginError));   // "Login database error"
+Console.WriteLine(resolver.Resolve(paymentError)); // "Payment database error"
+```
+
 ---
 
 ## Advanced Usage Examples
@@ -311,6 +374,13 @@ public class ErrorService
                     ? $"Database operation failed after {retryCount} retries." 
                     : "Database connection failed.";
             }))
+            .WithRule(new ErrorRule("DB001", e => 
+            {
+                var retryCount = e.Metadata.GetValueOrDefault("RetryCount", 0);
+                return retryCount > 0 
+                    ? $"Login failed after {retryCount} attempts." 
+                    : "Unable to verify login credentials.";
+            }, "UserLogin"))
             .Build();
     }
 
@@ -339,12 +409,23 @@ public class ErrorService
 
 // Usage
 var errorService = new ErrorService();
-var error = new AppError("VAL001", "Validation failed");
-error.AppendMetadata("Field", "Email");
 
-errorService.HandleError(error);
+// Test default rule
+var validationError = new AppError("VAL001", "Validation failed");
+validationError.AppendMetadata("Field", "Email");
+
+// Test specific rule with context
+var loginError = new AppError("DB001", "Connection failed", "UserLogin");
+loginError.AppendMetadata("RetryCount", 3);
+
+errorService.HandleError(validationError);
+errorService.HandleError(loginError);
+
+// Output:
 // Log: Error VAL001: Validation failed Metadata: Field=Email
 // User message: Validation error in field 'Email'. Please check your input.
+// Log: Error DB001: Connection failed Metadata: RetryCount=3
+// User message: Login failed after 3 attempts.
 ```
 
 ### Exception Integration
