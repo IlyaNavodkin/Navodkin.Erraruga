@@ -120,7 +120,7 @@ class Build : NukeBuild
 
 
     Target GetReleaseContent => _ => _
-        .DependsOn(CreateNuget)
+        .DependsOn(PublishNuget)
         .Executes(() =>
         {
             Log.Information("Using version: {Version}", Version);
@@ -160,6 +160,26 @@ class Build : NukeBuild
            
         });
 
+    Target PublishNuget => _ => _
+    .DependsOn(CreateNuget)
+    .Requires(() => NuGetApiKey)
+    .Executes(() =>
+    {
+        var packages = Glob.Files(OutputDirectory, "*.nupkg");
+        Log.Information("Found packages: {Packages}", string.Join(", ", packages));
+
+        foreach (var package in packages)
+        {
+            var fullPath = OutputDirectory / package;
+            Log.Information("Publishing package: {PackagePath}", fullPath);
+
+            DotNetNuGetPush(s => s
+                .SetTargetPath(fullPath)
+                .SetSource("https://api.nuget.org/v3/index.json")
+                .SetApiKey(NuGetApiKey));
+        }
+    });
+
     Target ReleaseBaby => _ => _
         .DependsOn(GetReleaseContent)
         .Executes(() =>
@@ -167,23 +187,5 @@ class Build : NukeBuild
             Log.Information("Okay :D run this shit!");
         });
 
-    //Target PublishNuget => _ => _
-    //    .DependsOn(CreateNuget)
-    //    .Requires(() => NuGetApiKey)
-    //    .Executes(() =>
-    //    {
-    //        var packages = Glob.Files(OutputDirectory, "*.nupkg");
-    //        Log.Information("Found packages: {Packages}", string.Join(", ", packages));
-            
-    //        foreach (var package in packages)
-    //        {
-    //            var fullPath = OutputDirectory / package;
-    //            Log.Information("Publishing package: {PackagePath}", fullPath);
-                
-    //            DotNetNuGetPush(s => s
-    //                .SetTargetPath(fullPath)
-    //                .SetSource("https://api.nuget.org/v3/index.json")
-    //                .SetApiKey(NuGetApiKey));
-    //        }
-    //    });
+
 }
