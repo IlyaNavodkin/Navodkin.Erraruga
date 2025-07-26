@@ -120,7 +120,7 @@ class Build : NukeBuild
 
 
     Target GetReleaseContent => _ => _
-        .DependsOn(PublishNuget)
+        .DependsOn(CreateNuget)
         .Executes(() =>
         {
             Log.Information("Using version: {Version}", Version);
@@ -148,37 +148,25 @@ class Build : NukeBuild
             }
         });
 
-    Target TestParse => _ => _
-        .Executes(() =>
-        {
-            var changelogFile = Root / "CHANGELOG.md";
+    //Target PublishNuget => _ => _
+    //.DependsOn(CreateNuget)
+    //.Requires(() => NuGetApiKey)
+    //.Executes(() =>
+    //{
+    //    var packages = Glob.Files(OutputDirectory, "*.nupkg");
+    //    Log.Information("Found packages: {Packages}", string.Join(", ", packages));
 
-            var changelogContent = File.ReadAllText(changelogFile, Encoding.UTF8);
+    //    foreach (var package in packages)
+    //    {
+    //        var fullPath = OutputDirectory / package;
+    //        Log.Information("Publishing package: {PackagePath}", fullPath);
 
-            var entry = ChangelogParser.ParseVersion(changelogContent, "5.0.0");
-
-           
-        });
-
-    Target PublishNuget => _ => _
-    .DependsOn(CreateNuget)
-    .Requires(() => NuGetApiKey)
-    .Executes(() =>
-    {
-        var packages = Glob.Files(OutputDirectory, "*.nupkg");
-        Log.Information("Found packages: {Packages}", string.Join(", ", packages));
-
-        foreach (var package in packages)
-        {
-            var fullPath = OutputDirectory / package;
-            Log.Information("Publishing package: {PackagePath}", fullPath);
-
-            DotNetNuGetPush(s => s
-                .SetTargetPath(fullPath)
-                .SetSource("https://api.nuget.org/v3/index.json")
-                .SetApiKey(NuGetApiKey));
-        }
-    });
+    //        DotNetNuGetPush(s => s
+    //            .SetTargetPath(fullPath)
+    //            .SetSource("https://api.nuget.org/v3/index.json")
+    //            .SetApiKey(NuGetApiKey));
+    //    }
+    //});
 
     Target ReleaseBaby => _ => _
         .DependsOn(GetReleaseContent)
@@ -186,6 +174,4 @@ class Build : NukeBuild
         {
             Log.Information("Okay :D run this shit!");
         });
-
-
 }
