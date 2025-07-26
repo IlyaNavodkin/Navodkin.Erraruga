@@ -30,7 +30,7 @@ public class ChangelogEntry
     {
         var stringBuilder = new StringBuilder();
 
-        stringBuilder.AppendLine($"## Version: {Version} - Date: {Date}\n");
+        stringBuilder.AppendLine($"## Version: v{Version} - Date: {Date.ToString("yyyy-MM-dd")}\n");
 
         if (Added.Any())
         {

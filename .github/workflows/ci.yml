@@ -60,7 +60,7 @@ jobs:
             files: artifacts/*.nupkg 
             tag_name: ${{ github.ref_name }}
             name: Release ${{ github.ref_name }}
-            body: Release ${{ steps.nuke_build.outputs.RELEASE_CONTENT }}
+            body: ${{ steps.nuke_build.outputs.RELEASE_CONTENT }}
             draft: false
             prerelease: false
         env:
