@@ -129,7 +129,7 @@ class Build : NukeBuild
 
             var changelogContent = File.ReadAllText(changelogFile, Encoding.UTF8);
 
-            var entry = ChangelogParser.ParseVersion(changelogContent, Version);
+            var entry = ChangelogParser.ParseVersion(changelogContent, GetVersion());
 
             if (entry == null)
             {
